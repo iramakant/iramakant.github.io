@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Welcome to My Blog
+title: Serverless vs Provisioned Cosmos
 date: 2026-04-04 01:53:47 +0000
 ---
 
