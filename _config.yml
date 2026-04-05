@@ -1,11 +1,11 @@
 title: My Blog
 description: A personal blog powered by Jekyll
 author: iramakant
-email: your-email@example.com
+email: ramakant.yadav@gmail.com
+phone: "8618086165"
 url: https://iramakant.github.io
-remote_theme: sujaykundu777/devlopr-jekyll
+theme: minima
 plugins:
-  - jekyll-remote-theme
   - jekyll-feed
   - jekyll-seo-tag
 markdown: kramdown
