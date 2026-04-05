@@ -3,7 +3,7 @@ description: A personal blog powered by Jekyll
 author: iramakant
 email: your-email@example.com
 url: https://iramakant.github.io
-theme: minima
+theme: devlopr-jekyll
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
