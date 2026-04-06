@@ -66,3 +66,4 @@ The "demo" of an agent is easy. The "production" of an agent is an exercise in *
 
 How many "reasoning steps" are you currently allowing your agents to take before a human has to step in?
 
+[Read the full article on LinkedIn](https://www.linkedin.com/pulse/beyond-prompt-architecting-agentic-rag-2026-ramakant-yadav-gykcc/)
