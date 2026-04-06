@@ -1,0 +1,25 @@
+---
+layout: default
+---
+<div class="home-hero">
+  <h1>{{ site.title | escape }}</h1>
+  <p>{{ site.description | escape }}</p>
+</div>
+
+<div class="posts-container">
+  {%- if site.posts.size > 0 -%}
+    <ul class="post-list">
+      {%- for post in site.posts -%}
+      <li class="post-card">
+        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+        <a class="post-link" href="{{ post.url | relative_url }}">
+          {{ post.title | escape }}
+        </a>
+        <div class="post-excerpt">
+          {{ post.excerpt | strip_html | truncatewords: 25 }}
+        </div>
+      </li>
+      {%- endfor -%}
+    </ul>
+  {%- endif -%}
+</div>

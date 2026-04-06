@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>agentic world | My Blog</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="agentic world" />
+<meta name="author" content="iramakant" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Openclaw experiments" />
+<meta property="og:description" content="Openclaw experiments" />
+<link rel="canonical" href="http://localhost:4000/2026/04/05/agents.html" />
+<meta property="og:url" content="http://localhost:4000/2026/04/05/agents.html" />
+<meta property="og:site_name" content="My Blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-04-05T07:23:47+05:30" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="agentic world" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"iramakant"},"dateModified":"2026-04-05T07:23:47+05:30","datePublished":"2026-04-05T07:23:47+05:30","description":"Openclaw experiments","headline":"agentic world","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2026/04/05/agents.html"},"url":"http://localhost:4000/2026/04/05/agents.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="My Blog" /></head>
+<body>
+
+  <header class="site-header" role="banner">
+    <div class="wrapper">
+      <a class="site-title" href="/">My Blog</a>
+      <nav class="site-nav">
+        <a href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content" aria-label="Content">
+    <div class="wrapper">
+      <article class="post">
+  <header class="post-header">
+    <h1 class="post-title">agentic world</h1>
+    <p class="post-meta">
+      <time datetime="2026-04-05T07:23:47+05:30">Apr 5, 2026
+      </time></p>
+  </header>
+
+  <div class="post-content">
+    <h1 id="openclaw-experiments">Openclaw experiments</h1>
+
+<p>When designing data-intensive applications, choosing the right capacity model in Azure Cosmos DB is a critical architectural decision. Azure Cosmos DB offers two primary capacity modes: provisioned throughput (which reserves capacity) and serverless (which bills based on consumption).</p>
+
+<p>While Serverless sounds appealing for reducing idle costs, high-throughput write workloads reveal hidden architectural constraints. Let’s look at how these two models handle <strong>10,000, 5,000, and 1,000 record updates per second</strong>.</p>
+
+<h3 id="the-baseline-math-rus-and-item-size">The Baseline Math: RUs and Item Size</h3>
+
+<p>In Azure Cosmos DB, the Request Unit (RU) is the fundamental currency that normalizes the physical resources required to perform database operations, including CPU, memory, and IOPS. A point-read of a 1 KB document by its unique identifier and partition key is the baseline operation and costs exactly 1 RU.</p>
+
+<p>Because an update operation inherently requires more effort, it averages about 10 RUs for a 1 KB document. Applying this math, we can estimate the throughput required for our update workloads:</p>
+<ul>
+  <li><strong>10k updates/sec</strong> = ~100,000 RU/s</li>
+  <li><strong>5k updates/sec</strong> = ~50,000 RU/s</li>
+  <li><strong>1k updates/sec</strong> = ~10,000 RU/s</li>
+</ul>
+
+<h3 id="the-hidden-trap-physical-partition-limits">The Hidden Trap: Physical Partition Limits</h3>
+
+<p>Both capacity models distribute your data across logical and physical partitions to achieve horizontal scale. However, their throughput densities differ significantly:</p>
+<ul>
+  <li><strong>Serverless Mode:</strong> Hard-capped at <strong>5,000 RU/s per physical partition</strong>.</li>
+  <li><strong>Provisioned Throughput:</strong> Can handle up to <strong>10,000 RU/s per physical partition</strong>.</li>
+</ul>
+
+<p>In serverless mode, your total capacity only scales linearly as your data size grows and forces physical partition splits. If your database has a small storage footprint (under 50 GB), it fits on a single physical partition and is physically incapable of bursting beyond 5,000 RU/s.</p>
+
+<p>Here is how this constraint impacts our three scale scenarios:</p>
+
+<hr />
+
+<h3 id="scenario-1-10000-updatessec-100000-rus">Scenario 1: 10,000 updates/sec (~100,000 RU/s)</h3>
+
+<ul>
+  <li><strong>Serverless:</strong> <strong>Total Failure.</strong> Your workload requires 100,000 RU/s, but a new serverless container maxes out at 5,000 RU/s. You will be severely rate-limited and overwhelmed with HTTP 429 throttling errors. To organically achieve 100,000 RU/s in Serverless, your dataset would need to be massive enough to span 20 physical partitions.</li>
+  <li><strong>Provisioned Throughput:</strong> <strong>The Only Choice.</strong> By manually provisioning 100,000 RU/s (or using Autoscale), Azure Cosmos DB pre-allocates the necessary physical partitions behind the scenes. Furthermore, Provisioned Throughput guarantees <strong>&lt; 10-millisecond write latency at the 99th percentile (P99) under a strict SLA</strong>, whereas Serverless only offers a looser &lt; 30-millisecond Service Level Objective (SLO) for writes.</li>
+</ul>
+
+<h3 id="scenario-2-5000-updatessec-50000-rus">Scenario 2: 5,000 updates/sec (~50,000 RU/s)</h3>
+
+<ul>
+  <li><strong>Serverless:</strong> <strong>Severe Throttling.</strong> At 50,000 RU/s, you are still demanding 10x the maximum throughput of a single serverless partition. Unless you have hundreds of gigabytes of stored data to force partition splits, your application will crash during these bursts.</li>
+  <li><strong>Provisioned Throughput:</strong> <strong>Perfect Fit.</strong> If this traffic represents unpredictable spikes, <strong>Autoscale Provisioned Throughput</strong> is ideal. You can set a maximum limit, and the system will automatically and instantaneously scale the available RU/s between 10% of that maximum and the full value based on instantaneous demand.</li>
+</ul>
+
+<h3 id="scenario-3-1000-updatessec-10000-rus">Scenario 3: 1,000 updates/sec (~10,000 RU/s)</h3>
+
+<ul>
+  <li><strong>Serverless:</strong> <strong>Highly Risky.</strong> Updating 1,000 records per second requires roughly 10,000 RU/s. Because a serverless container’s single-partition burst limit is 5,000 RU/s, you will still hit the ceiling and experience 429 throttling errors.</li>
+  <li><strong>Provisioned Throughput:</strong> <strong>Safest and Most Efficient.</strong> Provisioning exactly 10,000 RU/s ensures your workload runs smoothly, supported by dedicated resource allocation ensuring the database engine can process requests without contention.</li>
+</ul>
+
+<hr />
+
+<h3 id="the-economic-tipping-point-tco">The Economic Tipping Point (TCO)</h3>
+
+<p>The choice between the two models is often driven by a Total Cost of Ownership (TCO) analysis.</p>
+
+<p>Serverless is billed strictly by consumption at a rate of approximately <strong>$0.25 per 1 million RUs</strong>. Standard provisioned throughput bills at a fixed hourly rate of <strong>$0.008 per 100 RU/s</strong>.</p>
+
+<p>The generally accepted breakeven point where Provisioned Throughput becomes more cost-effective is between <strong>100 million and 250 million RUs per month</strong>.</p>
+
+<p>If your app pushes 1,000 to 10,000 updates per second on a sustained basis, you will easily consume billions of RUs per month, making <strong>Provisioned Throughput significantly cheaper</strong> than the pay-as-you-go serverless premium.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>Serverless mode is architecturally optimized for “spiky” workloads characterized by long idle times and unpredictable bursts of activity. However, <strong>if your workload demands thousands of writes per second, Provisioned Throughput is an architectural necessity</strong> to avoid the 5,000 RU/s serverless partition cap and to maintain strict low-latency SLAs.</p>
+
+<p><img src="/assets/images/serverless.png" alt="A placeholder image" /></p>
+
+  </div>
+
+</article>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrapper">
+      <p>&copy; 2026 iramakant. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
