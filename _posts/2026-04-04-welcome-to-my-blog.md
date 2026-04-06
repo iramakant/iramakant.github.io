@@ -4,9 +4,6 @@ title: Serverless vs Provisioned Cosmos
 date: 2026-04-04 01:53:47 +0000
 ---
 
-```markdown
-*(Note: The specific calculation that an average update operation costs roughly 10 RUs is drawn from outside of the provided sources, based on our previous conversation, and you may want to independently verify this specific metric. All other metrics, limits, and pricing details are directly from the provided sources.)*
-
 # Architecting for Scale: Azure Cosmos DB Serverless vs. Provisioned Throughput
 
 When designing data-intensive applications, choosing the right capacity model in Azure Cosmos DB is a critical architectural decision. Azure Cosmos DB offers two primary capacity modes: provisioned throughput (which reserves capacity) and serverless (which bills based on consumption). 
@@ -17,7 +14,7 @@ While Serverless sounds appealing for reducing idle costs, high-throughput write
 
 In Azure Cosmos DB, the Request Unit (RU) is the fundamental currency that normalizes the physical resources required to perform database operations, including CPU, memory, and IOPS. A point-read of a 1 KB document by its unique identifier and partition key is the baseline operation and costs exactly 1 RU. 
 
-Because an update operation inherently requires more effort, it averages about 10 RUs for a 1 KB document (as discussed previously). Applying this math, we can estimate the throughput required for our update workloads:
+Because an update operation inherently requires more effort, it averages about 10 RUs for a 1 KB document. Applying this math, we can estimate the throughput required for our update workloads:
 * **10k updates/sec** = ~100,000 RU/s
 * **5k updates/sec** = ~50,000 RU/s
 * **1k updates/sec** = ~10,000 RU/s
@@ -65,4 +62,4 @@ If your app pushes 1,000 to 10,000 updates per second on a sustained basis, you 
 
 Serverless mode is architecturally optimized for "spiky" workloads characterized by long idle times and unpredictable bursts of activity. However, **if your workload demands thousands of writes per second, Provisioned Throughput is an architectural necessity** to avoid the 5,000 RU/s serverless partition cap and to maintain strict low-latency SLAs.
 
-![A placeholder image](/assets/images/placeholder.svg)
+![A placeholder image](/assets/images/serverless.png)
