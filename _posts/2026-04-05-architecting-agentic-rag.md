@@ -1,8 +1,8 @@
-
+---
 layout: post
-title: architecting agentic rag
+title: Architecting Agentic RAG
 date: 2026-04-05 01:53:47 +0000
-
+---
 
 # Beyond the prompt: architecting for agentic RAG in 2026
 
